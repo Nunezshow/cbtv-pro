@@ -18,6 +18,8 @@ import com.cbuildz.tvpro.ui.screens.SettingsScreen
 import com.cbuildz.tvpro.ui.theme.AppTheme
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,14 +35,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     val navController = rememberNavController()
 
-                    // State for channels loaded from playlists
                     var channels by remember { mutableStateOf<List<Channel>>(emptyList()) }
-
-                    // Load all playlists (dummy now, extend later)
-                    LaunchedEffect(Unit) {
-                        // Example load
-                        // channels = PlaylistSource.loadFromUrl("http://example.com/playlist.m3u")
-                    }
 
                     NavHost(
                         navController = navController,
@@ -49,7 +44,11 @@ class MainActivity : ComponentActivity() {
                         composable(Routes.HOME) {
                             HomeScreen(
                                 onAddPlaylist = { navController.navigate(Routes.ADD_PLAYLIST) },
-                                onPlayTest = { navController.navigate("${Routes.PLAYER}/https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8") },
+                                onPlayTest = {
+                                    val url = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
+                                    val encoded = URLEncoder.encode(url, StandardCharsets.UTF_8.toString())
+                                    navController.navigate("${Routes.PLAYER}/$encoded")
+                                },
                                 onBrowseChannels = { navController.navigate(Routes.CHANNEL_LIST) },
                                 onSettings = { navController.navigate(Routes.SETTINGS) }
                             )
@@ -60,7 +59,8 @@ class MainActivity : ComponentActivity() {
                                 channels = channels,
                                 favorites = runBlocking { settings.getFavorites().first() },
                                 onChannelSelected = { channel ->
-                                    navController.navigate("${Routes.PLAYER}/${channel.url}")
+                                    val encoded = URLEncoder.encode(channel.url, StandardCharsets.UTF_8.toString())
+                                    navController.navigate("${Routes.PLAYER}/$encoded")
                                 },
                                 onToggleFavorite = { channel ->
                                     val favs = runBlocking { settings.getFavorites().first() }
@@ -75,14 +75,11 @@ class MainActivity : ComponentActivity() {
 
                         composable(
                             route = "${Routes.PLAYER}/{url}",
-                            arguments = listOf(
-                                navArgument("url") {
-                                    type = NavType.StringType
-                                    nullable = false
-                                }
-                            )
+                            arguments = listOf(navArgument("url") { type = NavType.StringType })
                         ) { backStackEntry ->
-                            val url = backStackEntry.arguments?.getString("url") ?: return@composable
+                            val url = backStackEntry.arguments?.getString("url")
+                                ?.let { java.net.URLDecoder.decode(it, StandardCharsets.UTF_8.toString()) }
+                                ?: return@composable
                             PlayerScreen(url = url)
                         }
 
@@ -91,7 +88,8 @@ class MainActivity : ComponentActivity() {
                                 channels = channels,
                                 favorites = runBlocking { settings.getFavorites().first() },
                                 onChannelClick = { channel ->
-                                    navController.navigate("${Routes.PLAYER}/${channel.url}")
+                                    val encoded = URLEncoder.encode(channel.url, StandardCharsets.UTF_8.toString())
+                                    navController.navigate("${Routes.PLAYER}/$encoded")
                                 },
                                 onToggleFavorite = { channel ->
                                     val favs = runBlocking { settings.getFavorites().first() }
@@ -120,7 +118,6 @@ class MainActivity : ComponentActivity() {
                         composable(Routes.ADD_PLAYLIST) {
                             AddPlaylistScreen(
                                 onPlaylistAdded = { url ->
-                                    // load channels from playlist
                                     channels = runBlocking { PlaylistSource.loadFromUrl(url) }
                                     navController.popBackStack()
                                 },
