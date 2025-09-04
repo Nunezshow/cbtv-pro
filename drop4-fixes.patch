@@ -1,14 +1,3 @@
-From 1234567890abcdef1234567890abcdef12345678 Mon Sep 17 00:00:00 2001
-From: ChatGPT <chatgpt@example.com>
-Date: Thu, 5 Sep 2025 18:00:00 +0000
-Subject: [PATCH] fix(ui): accent colors, playback crash, button focus states
-
----
- app/src/main/java/com/cbuildz/tvpro/MainActivity.kt     | 86 ++++++++++++++----
- app/src/main/java/com/cbuildz/tvpro/ui/TVButtonDefaults.kt | 22 ++++-
- app/src/main/java/com/cbuildz/tvpro/ui/theme/Theme.kt   | 54 +++++++----
- 3 files changed, 127 insertions(+), 35 deletions(-)
-
 diff --git a/app/src/main/java/com/cbuildz/tvpro/MainActivity.kt b/app/src/main/java/com/cbuildz/tvpro/MainActivity.kt
 index 1111111..2222222 100644
 --- a/app/src/main/java/com/cbuildz/tvpro/MainActivity.kt
@@ -27,12 +16,8 @@ index 1111111..2222222 100644
  class MainActivity : ComponentActivity() {
      override fun onCreate(savedInstanceState: Bundle?) {
 @@
--        val settings = SettingsDataStore(this)
--
 -        setContent {
 -            TVProTheme {
-+        val settings = SettingsDataStore(this)
-+
 +        setContent {
 +            AppTheme {
                  Surface(
@@ -136,7 +121,6 @@ index 1111111..2222222 100644
 +                                }
                              )
                          }
- 
 diff --git a/app/src/main/java/com/cbuildz/tvpro/ui/TVButtonDefaults.kt b/app/src/main/java/com/cbuildz/tvpro/ui/TVButtonDefaults.kt
 index 3333333..4444444 100644
 --- a/app/src/main/java/com/cbuildz/tvpro/ui/TVButtonDefaults.kt
@@ -149,7 +133,7 @@ index 3333333..4444444 100644
 -            containerColor = Color.DarkGray,
 -            contentColor = Color.White
 -        )
-+        val interactionSource = InteractionSource()
++        val interactionSource = remember { MutableInteractionSource() }
 +        val isFocused by interactionSource.collectIsFocusedAsState()
 +
 +        return ButtonDefaults.buttonColors(
@@ -172,49 +156,6 @@ index 5555555..6666666 100644
 +import androidx.compose.runtime.getValue
  import com.cbuildz.tvpro.data.SettingsDataStore
  import androidx.compose.ui.platform.LocalContext
-@@
--private val DarkColors = darkColorScheme(
--    primary = AccentCyan,
--    secondary = TextSecondary,
--    background = DarkBackground,
--    surface = DarkBackground,
--    onPrimary = TextPrimary,
--    onSecondary = TextPrimary,
--    onBackground = TextPrimary,
--    onSurface = TextPrimary
--)
--
--private val LightColors = lightColorScheme(
--    primary = AccentCyan,
--    secondary = TextSecondary,
--    background = LightBackground,
--    surface = LightBackground,
--    onPrimary = TextPrimary,
--    onSecondary = TextPrimary,
--    onBackground = Color.Black,
--    onSurface = Color.Black
--)
-+private val DarkColors = darkColorScheme(
-+    primary = AccentCyan,
-+    secondary = TextSecondary,
-+    background = DarkBackground,
-+    surface = DarkBackground,
-+    onPrimary = TextPrimary,
-+    onSecondary = TextPrimary,
-+    onBackground = TextPrimary,
-+    onSurface = TextPrimary
-+)
-+
-+private val LightColors = lightColorScheme(
-+    primary = AccentCyan,
-+    secondary = TextSecondary,
-+    background = LightBackground,
-+    surface = LightBackground,
-+    onPrimary = TextPrimary,
-+    onSecondary = TextPrimary,
-+    onBackground = Color.Black,
-+    onSurface = Color.Black
-+)
 @@
 -@Composable
 -fun TVProTheme(content: @Composable () -> Unit) {
@@ -248,5 +189,3 @@ index 5555555..6666666 100644
 +        content = content
 +    )
 +}
--- 
-2.39.1
