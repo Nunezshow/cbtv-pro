@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -15,9 +16,8 @@ import androidx.navigation.navArgument
 import com.cbuildz.tvpro.data.SettingsDataStore
 import com.cbuildz.tvpro.ui.screens.SettingsScreen
 import com.cbuildz.tvpro.ui.theme.AppTheme
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,17 +26,20 @@ class MainActivity : ComponentActivity() {
         val settings = SettingsDataStore(this)
 
         setContent {
-            AppTheme(settings = settings) {
-                Surface(modifier = Modifier.fillMaxSize()) {
+            AppTheme {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
                     val navController = rememberNavController()
-                    val scope = rememberCoroutineScope()
 
+                    // State for channels loaded from playlists
                     var channels by remember { mutableStateOf<List<Channel>>(emptyList()) }
-                    var favorites by remember { mutableStateOf<Set<String>>(emptySet()) }
 
-                    // Load favorites initially
+                    // Load all playlists (dummy now, extend later)
                     LaunchedEffect(Unit) {
-                        favorites = settings.getFavorites().first()
+                        // Example load
+                        // channels = PlaylistSource.loadFromUrl("http://example.com/playlist.m3u")
                     }
 
                     NavHost(
@@ -44,24 +47,26 @@ class MainActivity : ComponentActivity() {
                         startDestination = Routes.HOME
                     ) {
                         composable(Routes.HOME) {
-                            HomeScreen(nav = navController)
+                            HomeScreen(
+                                onAddPlaylist = { navController.navigate(Routes.ADD_PLAYLIST) },
+                                onPlayTest = { navController.navigate("${Routes.PLAYER}/https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8") },
+                                onBrowseChannels = { navController.navigate(Routes.CHANNEL_LIST) },
+                                onSettings = { navController.navigate(Routes.SETTINGS) }
+                            )
                         }
 
                         composable(Routes.CHANNEL_LIST) {
                             ChannelListScreen(
                                 channels = channels,
-                                favorites = channels.filter { favorites.contains(it.url) }.toSet(),
-                                onToggleFavorite = { channel ->
-                                    val updated = if (favorites.contains(channel.url)) {
-                                        favorites - channel.url
-                                    } else {
-                                        favorites + channel.url
-                                    }
-                                    favorites = updated
-                                    runBlocking { settings.saveFavorites(updated) }
-                                },
+                                favorites = runBlocking { settings.getFavorites().first() },
                                 onChannelSelected = { channel ->
                                     navController.navigate("${Routes.PLAYER}/${channel.url}")
+                                },
+                                onToggleFavorite = { channel ->
+                                    val favs = runBlocking { settings.getFavorites().first() }
+                                    val updated =
+                                        if (favs.contains(channel.url)) favs - channel.url else favs + channel.url
+                                    runBlocking { settings.saveFavorites(updated) }
                                 },
                                 onBack = { navController.popBackStack() },
                                 onFavorites = { navController.navigate(Routes.FAVORITES) }
@@ -70,7 +75,12 @@ class MainActivity : ComponentActivity() {
 
                         composable(
                             route = "${Routes.PLAYER}/{url}",
-                            arguments = listOf(navArgument("url") { type = NavType.StringType })
+                            arguments = listOf(
+                                navArgument("url") {
+                                    type = NavType.StringType
+                                    nullable = false
+                                }
+                            )
                         ) { backStackEntry ->
                             val url = backStackEntry.arguments?.getString("url") ?: return@composable
                             PlayerScreen(url = url)
@@ -79,16 +89,14 @@ class MainActivity : ComponentActivity() {
                         composable(Routes.FAVORITES) {
                             FavoritesScreen(
                                 channels = channels,
+                                favorites = runBlocking { settings.getFavorites().first() },
                                 onChannelClick = { channel ->
                                     navController.navigate("${Routes.PLAYER}/${channel.url}")
                                 },
                                 onToggleFavorite = { channel ->
-                                    val updated = if (favorites.contains(channel.url)) {
-                                        favorites - channel.url
-                                    } else {
-                                        favorites + channel.url
-                                    }
-                                    favorites = updated
+                                    val favs = runBlocking { settings.getFavorites().first() }
+                                    val updated =
+                                        if (favs.contains(channel.url)) favs - channel.url else favs + channel.url
                                     runBlocking { settings.saveFavorites(updated) }
                                 }
                             )
@@ -98,7 +106,8 @@ class MainActivity : ComponentActivity() {
                             SettingsScreen(
                                 rememberLast = runBlocking { settings.shouldRememberLast().first() },
                                 onToggleRememberLast = {
-                                    val current = runBlocking { settings.shouldRememberLast().first() }
+                                    val current =
+                                        runBlocking { settings.shouldRememberLast().first() }
                                     runBlocking { settings.setRememberLast(!current) }
                                 },
                                 onAccentSelected = { color ->
@@ -111,10 +120,9 @@ class MainActivity : ComponentActivity() {
                         composable(Routes.ADD_PLAYLIST) {
                             AddPlaylistScreen(
                                 onPlaylistAdded = { url ->
-                                    scope.launch {
-                                        channels = PlaylistSource.loadFromUrl(url)
-                                        navController.navigate(Routes.CHANNEL_LIST)
-                                    }
+                                    // load channels from playlist
+                                    channels = runBlocking { PlaylistSource.loadFromUrl(url) }
+                                    navController.popBackStack()
                                 },
                                 onBack = { navController.popBackStack() }
                             )

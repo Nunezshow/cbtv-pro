@@ -18,7 +18,7 @@ import androidx.tv.material3.Button
 @Composable
 fun ChannelListScreen(
     channels: List<Channel>,
-    favorites: Set<String>,                // Set of channel URLs
+    favorites: Set<String>,   // now Set<String>, not Set<Channel>
     onToggleFavorite: (Channel) -> Unit,
     onChannelSelected: (Channel) -> Unit,
     onBack: () -> Unit,
@@ -55,56 +55,6 @@ fun ChannelListScreen(
                 Button(onClick = onFavorites, colors = TVButtonDefaults.colors()) {
                     Text("Favorites")
                 }
-            }
-        }
-    }
-}
-
-@Composable
-fun ChannelRow(
-    channel: Channel,
-    isFavorite: Boolean,
-    onToggleFavorite: () -> Unit,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(IntrinsicSize.Min)
-            .padding(vertical = 6.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Row(Modifier.weight(1f)) {
-            if (!channel.logo.isNullOrEmpty()) {
-                Image(
-                    painter = rememberAsyncImagePainter(channel.logo),
-                    contentDescription = channel.name,
-                    modifier = Modifier.size(48.dp).padding(end = 12.dp),
-                    contentScale = ContentScale.Fit
-                )
-            }
-            Column {
-                Text(
-                    channel.name,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium
-                )
-                channel.group?.let {
-                    Text(
-                        it,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
-
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = onClick, colors = TVButtonDefaults.colors()) {
-                Text("Play")
-            }
-            Button(onClick = onToggleFavorite, colors = TVButtonDefaults.colors()) {
-                Text(if (isFavorite) "★" else "☆")
             }
         }
     }

@@ -1,0 +1,99 @@
+From 1b02a1c3e8d7c3e0d1229f07 Mon Sep 17 00:00:00 2001
+Subject: [PATCH] Fix favorites type mismatch and Theme import
+
+---
+ app/src/main/java/com/cbuildz/tvpro/ChannelListScreen.kt | 6 ++++--
+ app/src/main/java/com/cbuildz/tvpro/FavoritesScreen.kt   | 8 ++++----
+ app/src/main/java/com/cbuildz/tvpro/MainActivity.kt      | 3 ++-
+ app/src/main/java/com/cbuildz/tvpro/ui/theme/Theme.kt    | 3 +--
+ 4 files changed, 11 insertions(+), 9 deletions(-)
+
+diff --git a/app/src/main/java/com/cbuildz/tvpro/ChannelListScreen.kt b/app/src/main/java/com/cbuildz/tvpro/ChannelListScreen.kt
+index e123456..abcd123 100644
+--- a/app/src/main/java/com/cbuildz/tvpro/ChannelListScreen.kt
++++ b/app/src/main/java/com/cbuildz/tvpro/ChannelListScreen.kt
+@@
+ @Composable
+ fun ChannelListScreen(
+     channels: List<Channel>,
+-    favorites: Set<Channel>,
+-    onToggleFavorite: (Channel) -> Unit,
++    favorites: Set<String>,
++    onToggleFavorite: (Channel) -> Unit,
+     onChannelSelected: (Channel) -> Unit,
+     onBack: () -> Unit,
+     onFavorites: () -> Unit
+@@
+         ) {
+             items(channels) { channel ->
+                 ChannelRow(
+-                    channel = channel,
+-                    isFavorite = favorites.contains(channel),
++                    channel = channel,
++                    isFavorite = favorites.contains(channel.url),
+                     onToggleFavorite = { onToggleFavorite(channel) },
+                     onClick = { onChannelSelected(channel) }
+                 )
+diff --git a/app/src/main/java/com/cbuildz/tvpro/FavoritesScreen.kt b/app/src/main/java/com/cbuildz/tvpro/FavoritesScreen.kt
+index e123456..abcd124 100644
+--- a/app/src/main/java/com/cbuildz/tvpro/FavoritesScreen.kt
++++ b/app/src/main/java/com/cbuildz/tvpro/FavoritesScreen.kt
+@@
+ @Composable
+ fun FavoritesScreen(
+     channels: List<Channel>,
+-    settings: SettingsDataStore,
+-    onChannelClick: (Channel) -> Unit,
+-    onToggleFavorite: (Channel) -> Unit
++    favorites: Set<String>,
++    onChannelClick: (Channel) -> Unit,
++    onToggleFavorite: (Channel) -> Unit
+ ) {
+-    val favorites by settings.getFavorites().collectAsState(initial = emptySet())
+-
+-    val favoriteChannels = channels.filter { channel ->
+-        favorites.contains(channel.url)
+-    }
++    val favoriteChannels = channels.filter { channel ->
++        favorites.contains(channel.url)
++    }
+ 
+     Column(
+         modifier = Modifier.fillMaxSize().padding(16.dp),
+diff --git a/app/src/main/java/com/cbuildz/tvpro/MainActivity.kt b/app/src/main/java/com/cbuildz/tvpro/MainActivity.kt
+index e123456..abcd125 100644
+--- a/app/src/main/java/com/cbuildz/tvpro/MainActivity.kt
++++ b/app/src/main/java/com/cbuildz/tvpro/MainActivity.kt
+@@
+                     NavHost(
+                         navController = navController,
+                         startDestination = Routes.HOME
+                     ) {
+                         composable(Routes.HOME) {
+-                            HomeScreen(
+-                                onNavigate = { route -> navController.navigate(route) }
+-                            )
++                            HomeScreen(
++                                onNavigate = { route -> navController.navigate(route) }
++                            )
+                         }
+ 
+                         composable(Routes.CHANNEL_LIST) {
+                             ChannelListScreen(
+                                 channels = channels,
+-                                settings = settings,
+-                                onChannelClick = { channel ->
++                                favorites = runBlocking { settings.getFavorites().first() },
++                                onChannelSelected = { channel ->
+                                     navController.navigate("${Routes.PLAYER}/${channel.url}")
+                                 },
+                                 onToggleFavorite = { channel ->
+diff --git a/app/src/main/java/com/cbuildz/tvpro/ui/theme/Theme.kt b/app/src/main/java/com/cbuildz/tvpro/ui/theme/Theme.kt
+index e123456..abcd126 100644
+--- a/app/src/main/java/com/cbuildz/tvpro/ui/theme/Theme.kt
++++ b/app/src/main/java/com/cbuildz/tvpro/ui/theme/Theme.kt
+@@
+-import kotlin.text.Typography
++import androidx.compose.material3.Typography
+ import androidx.compose.material3.Shapes
+ import androidx.compose.material3.lightColorScheme
