@@ -2,17 +2,18 @@ package com.cbuildz.tvpro.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Dark base
-val Bg = Color(0xFF0F1115)
-val Surface = Color(0xFF161A20)
-val SurfaceVariant = Color(0xFF202531)
+// Accent palettes
+val CyanPrimary = Color(0xFF00BCD4)
+val CyanSecondary = Color(0xFF26C6DA)
 
-// Accent (tweak anytime)
-val Accent = Color(0xFF4CC9F0) // cyan-ish
-val AccentVariant = Color(0xFF3AAAD1)
+val RedPrimary = Color(0xFFE53935)
+val RedSecondary = Color(0xFFEF5350)
 
-// Content
-val OnBg = Color(0xFFE8ECF1)
-val OnSurface = Color(0xFFD7DBE2)
-val OnSurfaceVariant = Color(0xFF9AA3AE)
-val OnAccent = Color(0xFF081218)
+val GreenPrimary = Color(0xFF43A047)
+val GreenSecondary = Color(0xFF66BB6A)
+
+// Background / text
+val DarkBackground = Color(0xFF0A0A0A)
+val LightBackground = Color(0xFFFFFFFF)
+val TextPrimary = Color(0xFFFFFFFF)
+val TextOnLight = Color(0xFF000000)

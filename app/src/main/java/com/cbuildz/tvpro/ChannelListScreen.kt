@@ -18,7 +18,7 @@ import androidx.tv.material3.Button
 @Composable
 fun ChannelListScreen(
     channels: List<Channel>,
-    favorites: Set<Channel>,
+    favorites: Set<String>,                // Set of channel URLs
     onToggleFavorite: (Channel) -> Unit,
     onChannelSelected: (Channel) -> Unit,
     onBack: () -> Unit,
@@ -39,7 +39,7 @@ fun ChannelListScreen(
             items(channels) { channel ->
                 ChannelRow(
                     channel = channel,
-                    isFavorite = favorites.contains(channel),
+                    isFavorite = favorites.contains(channel.url),
                     onToggleFavorite = { onToggleFavorite(channel) },
                     onClick = { onChannelSelected(channel) }
                 )
@@ -99,7 +99,6 @@ fun ChannelRow(
             }
         }
 
-        // Actions: Play + Favorite
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = onClick, colors = TVButtonDefaults.colors()) {
                 Text("Play")

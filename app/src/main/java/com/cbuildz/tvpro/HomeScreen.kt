@@ -5,13 +5,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import androidx.tv.material3.Button
 import com.cbuildz.tvpro.ui.TVButtonDefaults
 
 @Composable
 fun HomeScreen(
-    nav: NavController,
+    onNavigate: (String) -> Unit,
     onAddPlaylist: () -> Unit,
     onPlayTest: () -> Unit
 ) {
@@ -22,24 +21,19 @@ fun HomeScreen(
         Text("cBuildz TV Pro")
 
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            Button(
-                onClick = onAddPlaylist,
-                colors = TVButtonDefaults.colors()
-            ) {
+            Button(onClick = onAddPlaylist, colors = TVButtonDefaults.colors()) {
                 Text("Add Playlist")
             }
 
-            Button(
-                onClick = onPlayTest,
-                colors = TVButtonDefaults.colors()
-            ) {
+            Button(onClick = onPlayTest, colors = TVButtonDefaults.colors()) {
                 Text("Play Test HLS")
             }
 
-            Button(
-                onClick = { nav.navigate(Routes.SETTINGS) },
-                colors = TVButtonDefaults.colors()
-            ) {
+            Button(onClick = { onNavigate(Routes.CHANNEL_LIST) }, colors = TVButtonDefaults.colors()) {
+                Text("Browse Channels")
+            }
+
+            Button(onClick = { onNavigate(Routes.SETTINGS) }, colors = TVButtonDefaults.colors()) {
                 Text("Settings")
             }
         }

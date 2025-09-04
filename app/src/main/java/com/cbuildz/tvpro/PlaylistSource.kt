@@ -4,37 +4,48 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.URL
 
-class PlaylistSource {
-    private var channels: List<Channel> = emptyList()
+object PlaylistSource {
 
-    fun getChannels(): List<Channel> = channels
-
-    suspend fun loadFromUrl(url: String) {
-        channels = withContext(Dispatchers.IO) {
-            parseM3U(URL(url).readText())
+    suspend fun loadFromUrl(url: String): List<Channel> = withContext(Dispatchers.IO) {
+        try {
+            val content = URL(url).readText()
+            parseM3U(content)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
         }
     }
 
     private fun parseM3U(content: String): List<Channel> {
-        val result = mutableListOf<Channel>()
+        val lines = content.lines()
+        val channels = mutableListOf<Channel>()
         var currentName = ""
         var currentLogo: String? = null
         var currentGroup: String? = null
 
-        content.lines().forEach { line ->
+        for (line in lines) {
             when {
                 line.startsWith("#EXTINF") -> {
-                    // Example: #EXTINF:-1 tvg-logo="logo.png" group-title="News",Channel Name
-                    val namePart = line.substringAfterLast(",").trim()
-                    currentName = namePart
-                    currentLogo = Regex("tvg-logo=\"(.*?)\"").find(line)?.groupValues?.get(1)
-                    currentGroup = Regex("group-title=\"(.*?)\"").find(line)?.groupValues?.get(1)
+                    val nameRegex = Regex(",(.+)")
+                    val logoRegex = Regex("tvg-logo=\"([^\"]+)\"")
+                    val groupRegex = Regex("group-title=\"([^\"]+)\"")
+
+                    currentName = nameRegex.find(line)?.groupValues?.get(1)?.trim() ?: "Unknown"
+                    currentLogo = logoRegex.find(line)?.groupValues?.get(1)
+                    currentGroup = groupRegex.find(line)?.groupValues?.get(1)
                 }
                 line.startsWith("http") -> {
-                    result.add(Channel(currentName, line.trim(), currentLogo, currentGroup))
+                    channels.add(
+                        Channel(
+                            name = currentName,
+                            url = line.trim(),
+                            logo = currentLogo,
+                            group = currentGroup
+                        )
+                    )
                 }
             }
         }
-        return result
+        return channels
     }
 }
