@@ -1,18 +1,16 @@
 package com.cbuildz.tvpro.ui
 
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.Composable
-import androidx.tv.material3.ButtonDefaults
-import androidx.tv.material3.ButtonColors
+import androidx.compose.ui.graphics.Color
+import androidx.tv.material3.ButtonDefaults as TvButtonDefaults
 
 object TVButtonDefaults {
     @Composable
-    fun colors(): ButtonColors {
-        return ButtonDefaults.colors(
-            containerColor = MaterialTheme.colorScheme.secondary,
-            contentColor = MaterialTheme.colorScheme.onSecondary,
-            focusedContainerColor = MaterialTheme.colorScheme.primary,
-            focusedContentColor = MaterialTheme.colorScheme.onPrimary
-        )
-    }
+    fun colors() = TvButtonDefaults.colors(
+        containerColor = Color.DarkGray,
+        contentColor = Color.White,
+        focusedContainerColor = Color.White,
+        focusedContentColor = Color.Black
+    )
 }

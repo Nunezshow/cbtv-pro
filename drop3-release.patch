@@ -1,0 +1,60 @@
+From 1234567890abcdef1234567890abcdef12345678 Mon Sep 17 00:00:00 2001
+From: Nunezshow <you@example.com>
+Date: Thu, 5 Sep 2025 22:15:00 -0500
+Subject: [PATCH] v0.3 release notes and version tracking
+
+---
+ CHANGELOG.md | 42 ++++++++++++++++++++++++++++++++++++++++++
+ VERSION      |  1 +
+ 2 files changed, 43 insertions(+)
+ create mode 100644 CHANGELOG.md
+ create mode 100644 VERSION
+
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/CHANGELOG.md
+@@ -0,0 +1,42 @@
++# 📜 Changelog
++
++All notable changes to this project will be documented here.
++
++---
++
++## [v0.3] - 2025-09-05
++
++### ✨ Features
++- ✅ Playlist saving & browsing (no more empty channels)
++- 🎨 Accent color customization in Settings
++- ▶️ Test HLS playback (fixed crashes, smoother player)
++- 🌙 Improved UI theming (dynamic color updates)
++
++### 🛠 Fixes / Improvements
++- Fixed navigation bug when saving a playlist
++- Restored channel browsing
++- Improved error handling for ExoPlayer
++- General cleanup of theme code
++
++### ⚠️ Known Issues
++- Button styling is still minimal; will be refined in **Drop #4**
++- Backend integration not yet connected (planned for Drop #5)
++
++### 🔮 Next Up
++- UI polish (better button states, theme unification)
++- Multi-playlist support
++- Extended backend features (user accounts, permissions)
++
++---
++
++[v0.3]: https://github.com/Nunezshow/cbtv-pro/releases/tag/v0.3
+diff --git a/VERSION b/VERSION
+new file mode 100644
+index 0000000..2222222
+--- /dev/null
++++ b/VERSION
+@@ -0,0 +1 @@
++0.3.0
+\ No newline at end of file
+-- 
+2.46.0.windows.1

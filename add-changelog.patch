@@ -1,0 +1,57 @@
+From 1a2b3c4d5e6f7890abcdef1234567890abcdef12 Mon Sep 17 00:00:00 2001
+From: Nunezshow <your-email@example.com>
+Date: Thu, 4 Sep 2025 22:45:00 -0500
+Subject: [PATCH] docs: add CHANGELOG.md for v0.3 release
+
+---
+ CHANGELOG.md | 42 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 42 insertions(+)
+ create mode 100644 CHANGELOG.md
+
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/CHANGELOG.md
+@@ -0,0 +1,42 @@
++# 📜 Changelog
++
++All notable changes to this project will be documented here.  
++This project follows [Semantic Versioning](https://semver.org/).
++
++---
++
++## [v0.3] - 2025-09-04
++### ✨ Features
++- Added playlist saving & browsing
++- Accent color customization in settings
++- HLS test playback (fixed crashes)
++- UI theming improvements (dynamic colors)
++
++### 🛠 Fixes / Improvements
++- Playlist screen navigation fixed
++- Channel browsing restored
++
++### ⚠️ Known Issues
++- Button styling is still basic (to be refined in later drop)
++
++---
++
++## [v0.2] - 2025-09-02
++### ✨ Features
++- Favorites persistence across sessions
++- Auto-resume last channel on app launch
++- Settings toggle to enable/disable auto-resume
++- Back navigation improvements
++
++### 🛠 Fixes / Improvements
++- Regression tests passed: playlist, player, and settings still working
++
++---
++
++## [v0.1] - 2025-09-01
++### ✨ Initial Release
++- First working build of **cBuildz TV Pro**
++- HLS video playback
++- Basic playlist import
++- Channel list browsing

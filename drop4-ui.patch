@@ -1,0 +1,168 @@
+From 9a1d23e drop4-ui-polish Mon Sep 4 12:00:00 2025
+Subject: [PATCH] Drop #4 - UI & Navigation Polish
+
+---
+ CHANGELOG.md                                   | 10 ++++++++++
+ app/src/main/java/com/cbuildz/tvpro/HomeScreen.kt   | 12 ++++++++----
+ app/src/main/java/com/cbuildz/tvpro/MainActivity.kt |  4 +++-
+ app/src/main/java/com/cbuildz/tvpro/ui/TVButtonDefaults.kt | 13 ++++++++++++-
+ app/src/main/java/com/cbuildz/tvpro/ui/theme/Color.kt      | 14 ++++++++++++++
+ app/src/main/java/com/cbuildz/tvpro/ui/theme/Theme.kt      | 10 +++++++---
+ 6 files changed, 54 insertions(+), 9 deletions(-)
+
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+new file mode 100644
+index 0000000..b1c4e20
+--- /dev/null
++++ b/CHANGELOG.md
+@@
++# 📜 Changelog
++
++## Drop #4 – UI & Navigation Polish (2025-09-04)
++- Improved dark background consistency
++- Accent colors now correctly apply
++- Better contrast for buttons (focused vs unfocused)
++- Home screen navigation buttons clarified
++- Prepped UI foundation for Drop #5 (EPG grid + overlays)
++
++
+diff --git a/app/src/main/java/com/cbuildz/tvpro/HomeScreen.kt b/app/src/main/java/com/cbuildz/tvpro/HomeScreen.kt
+index 11b9602..99d26e3 100644
+--- a/app/src/main/java/com/cbuildz/tvpro/HomeScreen.kt
++++ b/app/src/main/java/com/cbuildz/tvpro/HomeScreen.kt
+@@
+ fun HomeScreen(
+-    nav: NavController,
+-    onAddPlaylist: () -> Unit,
+-    onPlayTest: () -> Unit
++    nav: NavController
+ ) {
+     Column(
+         modifier = Modifier.fillMaxSize().padding(32.dp),
+         verticalArrangement = Arrangement.spacedBy(24.dp)
+     ) {
+-        Text("cBuildz TV Pro")
++        Text("cBuildz TV Pro", style = MaterialTheme.typography.headlineMedium)
+ 
+         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+-            Button(
+-                onClick = onAddPlaylist,
+-                colors = TVButtonDefaults.colors()
+-            ) {
+-                Text("Add Playlist")
+-            }
+-
+-            Button(
+-                onClick = onPlayTest,
+-                colors = TVButtonDefaults.colors()
+-            ) {
+-                Text("Play Test HLS")
+-            }
+-
+-            Button(
+-                onClick = { nav.navigate(Routes.SETTINGS) },
+-                colors = TVButtonDefaults.colors()
+-            ) {
+-                Text("Settings")
+-            }
++            Button(onClick = { nav.navigate(Routes.ADD_PLAYLIST) }, colors = TVButtonDefaults.colors()) {
++                Text("Add Playlist")
++            }
++            Button(onClick = { nav.navigate(Routes.CHANNEL_LIST) }, colors = TVButtonDefaults.colors()) {
++                Text("Browse Channels")
++            }
++            Button(onClick = { nav.navigate(Routes.FAVORITES) }, colors = TVButtonDefaults.colors()) {
++                Text("Favorites")
++            }
++            Button(onClick = { nav.navigate(Routes.SETTINGS) }, colors = TVButtonDefaults.colors()) {
++                Text("Settings")
++            }
+         }
+     }
+ }
+diff --git a/app/src/main/java/com/cbuildz/tvpro/MainActivity.kt b/app/src/main/java/com/cbuildz/tvpro/MainActivity.kt
+index 8c75f6b..bca21f2 100644
+--- a/app/src/main/java/com/cbuildz/tvpro/MainActivity.kt
++++ b/app/src/main/java/com/cbuildz/tvpro/MainActivity.kt
+@@
+                     NavHost(
+                         navController = navController,
+                         startDestination = Routes.HOME
+                     ) {
+                         composable(Routes.HOME) {
+-                            HomeScreen(
+-                                onNavigate = { route -> navController.navigate(route) }
+-                            )
++                            HomeScreen(nav = navController)
+                         }
+ 
+                         composable(Routes.CHANNEL_LIST) {
+                             ChannelListScreen(
+                                 channels = channels,
+-                                settings = settings,
+                                 onChannelSelected = { channel ->
+                                     navController.navigate("${Routes.PLAYER}/${channel.url}")
+                                 },
+diff --git a/app/src/main/java/com/cbuildz/tvpro/ui/TVButtonDefaults.kt b/app/src/main/java/com/cbuildz/tvpro/ui/TVButtonDefaults.kt
+index 5c48e2a..66fb1f3 100644
+--- a/app/src/main/java/com/cbuildz/tvpro/ui/TVButtonDefaults.kt
++++ b/app/src/main/java/com/cbuildz/tvpro/ui/TVButtonDefaults.kt
+@@
+ object TVButtonDefaults {
+-    fun colors() = ButtonDefaults.buttonColors()
++    fun colors() = ButtonDefaults.buttonColors(
++        containerColor = Color.DarkGray,
++        contentColor = Color.White,
++        focusedContainerColor = Color.White,
++        focusedContentColor = Color.Black,
++        pressedContainerColor = Color.Gray,
++        pressedContentColor = Color.White
++    )
+ }
++
+diff --git a/app/src/main/java/com/cbuildz/tvpro/ui/theme/Color.kt b/app/src/main/java/com/cbuildz/tvpro/ui/theme/Color.kt
+index e69de29..cf0a6aa 100644
+--- a/app/src/main/java/com/cbuildz/tvpro/ui/theme/Color.kt
++++ b/app/src/main/java/com/cbuildz/tvpro/ui/theme/Color.kt
+@@
++import androidx.compose.ui.graphics.Color
++
++// Base dark/light
++val DarkBackground = Color(0xFF121212)
++val LightBackground = Color(0xFFFFFFFF)
++val TextPrimary = Color(0xFFFFFFFF)
++
++// Accents
++val AccentCyan = Color(0xFF00BCD4)
++val AccentRed = Color(0xFFE53935)
++val AccentGreen = Color(0xFF43A047)
++
++// Button states
++val ButtonFocused = Color.White
++val ButtonUnfocused = Color.DarkGray
+diff --git a/app/src/main/java/com/cbuildz/tvpro/ui/theme/Theme.kt b/app/src/main/java/com/cbuildz/tvpro/ui/theme/Theme.kt
+index 6a65f43..99811d8 100644
+--- a/app/src/main/java/com/cbuildz/tvpro/ui/theme/Theme.kt
++++ b/app/src/main/java/com/cbuildz/tvpro/ui/theme/Theme.kt
+@@
+ @Composable
+ fun TVProTheme(accent: Color = AccentCyan, content: @Composable () -> Unit) {
+-    val colors = lightColorScheme()
+-    MaterialTheme(
+-        colorScheme = colors,
+-        typography = Typography(),
+-        shapes = Shapes(),
+-        content = content
+-    )
++    val colors = darkColorScheme(
++        primary = accent,
++        secondary = accent,
++        background = DarkBackground,
++        surface = DarkBackground,
++        onPrimary = Color.Black,
++        onSecondary = Color.Black,
++        onBackground = TextPrimary,
++        onSurface = TextPrimary
++    )
++    MaterialTheme(colorScheme = colors, content = content)
+ }
