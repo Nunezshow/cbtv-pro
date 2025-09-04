@@ -1,0 +1,252 @@
+From 1234567890abcdef1234567890abcdef12345678 Mon Sep 17 00:00:00 2001
+From: ChatGPT <chatgpt@example.com>
+Date: Thu, 5 Sep 2025 18:00:00 +0000
+Subject: [PATCH] fix(ui): accent colors, playback crash, button focus states
+
+---
+ app/src/main/java/com/cbuildz/tvpro/MainActivity.kt     | 86 ++++++++++++++----
+ app/src/main/java/com/cbuildz/tvpro/ui/TVButtonDefaults.kt | 22 ++++-
+ app/src/main/java/com/cbuildz/tvpro/ui/theme/Theme.kt   | 54 +++++++----
+ 3 files changed, 127 insertions(+), 35 deletions(-)
+
+diff --git a/app/src/main/java/com/cbuildz/tvpro/MainActivity.kt b/app/src/main/java/com/cbuildz/tvpro/MainActivity.kt
+index 1111111..2222222 100644
+--- a/app/src/main/java/com/cbuildz/tvpro/MainActivity.kt
++++ b/app/src/main/java/com/cbuildz/tvpro/MainActivity.kt
+@@
+ import androidx.navigation.navArgument
+ import com.cbuildz.tvpro.data.SettingsDataStore
+ import com.cbuildz.tvpro.ui.screens.SettingsScreen
+-import com.cbuildz.tvpro.ui.theme.TVProTheme
++import com.cbuildz.tvpro.ui.theme.AppTheme
+ import kotlinx.coroutines.flow.first
+ import kotlinx.coroutines.runBlocking
++import java.net.URLEncoder
++import java.nio.charset.StandardCharsets
+ 
+ class MainActivity : ComponentActivity() {
+     override fun onCreate(savedInstanceState: Bundle?) {
+@@
+-        val settings = SettingsDataStore(this)
+-
+-        setContent {
+-            TVProTheme {
++        val settings = SettingsDataStore(this)
++
++        setContent {
++            AppTheme {
+                 Surface(
+                     modifier = Modifier.fillMaxSize(),
+                     color = MaterialTheme.colorScheme.background
+@@
+                         composable(Routes.HOME) {
+-                            HomeScreen(
+-                                onNavigate = { route -> navController.navigate(route) }
+-                            )
++                            HomeScreen(
++                                onAddPlaylist = { navController.navigate(Routes.ADD_PLAYLIST) },
++                                onPlayTest = {
++                                    val url = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
++                                    val encoded = URLEncoder.encode(url, StandardCharsets.UTF_8.toString())
++                                    navController.navigate("${Routes.PLAYER}/$encoded")
++                                },
++                                onBrowseChannels = { navController.navigate(Routes.CHANNEL_LIST) },
++                                onSettings = { navController.navigate(Routes.SETTINGS) }
++                            )
+                         }
+ 
+                         composable(Routes.CHANNEL_LIST) {
+@@
+-                                channels = channels,
+-                                settings = settings,
+-                                onChannelClick = { channel ->
+-                                    navController.navigate("${Routes.PLAYER}/${channel.url}")
+-                                },
+-                                onToggleFavorite = { channel ->
+-                                    val favorites = runBlocking { settings.getFavorites().first() }
+-                                    val updated = if (favorites.contains(channel.url)) {
+-                                        favorites - channel.url
+-                                    } else {
+-                                        favorites + channel.url
+-                                    }
+-                                    runBlocking { settings.saveFavorites(updated) }
+-                                }
++                                channels = channels,
++                                favorites = runBlocking { settings.getFavorites().first() },
++                                onChannelSelected = { channel ->
++                                    val encoded = URLEncoder.encode(channel.url, StandardCharsets.UTF_8.toString())
++                                    navController.navigate("${Routes.PLAYER}/$encoded")
++                                },
++                                onToggleFavorite = { channel ->
++                                    val favs = runBlocking { settings.getFavorites().first() }
++                                    val updated = if (favs.contains(channel.url)) favs - channel.url else favs + channel.url
++                                    runBlocking { settings.saveFavorites(updated) }
++                                },
++                                onBack = { navController.popBackStack() },
++                                onFavorites = { navController.navigate(Routes.FAVORITES) }
+                             )
+                         }
+ 
+                         composable(
+-                            route = "${Routes.PLAYER}/{url}",
+-                            arguments = listOf(
+-                                navArgument("url") {
+-                                    type = NavType.StringType
+-                                    nullable = false
+-                                }
+-                            )
+-                        ) { backStackEntry ->
+-                            val url = backStackEntry.arguments?.getString("url") ?: return@composable
+-                            PlayerScreen(url = url, settings = settings)
++                            route = "${Routes.PLAYER}/{url}",
++                            arguments = listOf(navArgument("url") { type = NavType.StringType })
++                        ) { backStackEntry ->
++                            val url = backStackEntry.arguments?.getString("url")
++                                ?.let { java.net.URLDecoder.decode(it, StandardCharsets.UTF_8.toString()) }
++                                ?: return@composable
++                            PlayerScreen(url = url)
+                         }
+ 
+                         composable(Routes.FAVORITES) {
+@@
+-                                channels = channels,
+-                                settings = settings,
+-                                onChannelClick = { channel ->
+-                                    navController.navigate("${Routes.PLAYER}/${channel.url}")
+-                                },
+-                                onToggleFavorite = { channel ->
+-                                    val favorites = runBlocking { settings.getFavorites().first() }
+-                                    val updated = if (favorites.contains(channel.url)) {
+-                                        favorites - channel.url
+-                                    } else {
+-                                        favorites + channel.url
+-                                    }
+-                                    runBlocking { settings.saveFavorites(updated) }
+-                                }
++                                channels = channels,
++                                favorites = runBlocking { settings.getFavorites().first() },
++                                onChannelClick = { channel ->
++                                    val encoded = URLEncoder.encode(channel.url, StandardCharsets.UTF_8.toString())
++                                    navController.navigate("${Routes.PLAYER}/$encoded")
++                                },
++                                onToggleFavorite = { channel ->
++                                    val favs = runBlocking { settings.getFavorites().first() }
++                                    val updated = if (favs.contains(channel.url)) favs - channel.url else favs + channel.url
++                                    runBlocking { settings.saveFavorites(updated) }
++                                }
+                             )
+                         }
+ 
+diff --git a/app/src/main/java/com/cbuildz/tvpro/ui/TVButtonDefaults.kt b/app/src/main/java/com/cbuildz/tvpro/ui/TVButtonDefaults.kt
+index 3333333..4444444 100644
+--- a/app/src/main/java/com/cbuildz/tvpro/ui/TVButtonDefaults.kt
++++ b/app/src/main/java/com/cbuildz/tvpro/ui/TVButtonDefaults.kt
+@@
+ object TVButtonDefaults {
+     @Composable
+     fun colors(): ButtonColors {
+-        return ButtonDefaults.buttonColors(
+-            containerColor = Color.DarkGray,
+-            contentColor = Color.White
+-        )
++        val interactionSource = InteractionSource()
++        val isFocused by interactionSource.collectIsFocusedAsState()
++
++        return ButtonDefaults.buttonColors(
++            containerColor = if (isFocused) AccentCyan.copy(alpha = 0.8f) else Color.DarkGray,
++            contentColor = TextPrimary
++        )
+     }
+ }
+diff --git a/app/src/main/java/com/cbuildz/tvpro/ui/theme/Theme.kt b/app/src/main/java/com/cbuildz/tvpro/ui/theme/Theme.kt
+index 5555555..6666666 100644
+--- a/app/src/main/java/com/cbuildz/tvpro/ui/theme/Theme.kt
++++ b/app/src/main/java/com/cbuildz/tvpro/ui/theme/Theme.kt
+@@
+ import androidx.compose.foundation.isSystemInDarkTheme
+ import androidx.compose.material3.MaterialTheme
+ import androidx.compose.material3.darkColorScheme
+ import androidx.compose.material3.lightColorScheme
+ import androidx.compose.runtime.Composable
++import androidx.compose.runtime.collectAsState
++import androidx.compose.runtime.getValue
+ import com.cbuildz.tvpro.data.SettingsDataStore
+ import androidx.compose.ui.platform.LocalContext
+@@
+-private val DarkColors = darkColorScheme(
+-    primary = AccentCyan,
+-    secondary = TextSecondary,
+-    background = DarkBackground,
+-    surface = DarkBackground,
+-    onPrimary = TextPrimary,
+-    onSecondary = TextPrimary,
+-    onBackground = TextPrimary,
+-    onSurface = TextPrimary
+-)
+-
+-private val LightColors = lightColorScheme(
+-    primary = AccentCyan,
+-    secondary = TextSecondary,
+-    background = LightBackground,
+-    surface = LightBackground,
+-    onPrimary = TextPrimary,
+-    onSecondary = TextPrimary,
+-    onBackground = Color.Black,
+-    onSurface = Color.Black
+-)
++private val DarkColors = darkColorScheme(
++    primary = AccentCyan,
++    secondary = TextSecondary,
++    background = DarkBackground,
++    surface = DarkBackground,
++    onPrimary = TextPrimary,
++    onSecondary = TextPrimary,
++    onBackground = TextPrimary,
++    onSurface = TextPrimary
++)
++
++private val LightColors = lightColorScheme(
++    primary = AccentCyan,
++    secondary = TextSecondary,
++    background = LightBackground,
++    surface = LightBackground,
++    onPrimary = TextPrimary,
++    onSecondary = TextPrimary,
++    onBackground = Color.Black,
++    onSurface = Color.Black
++)
+@@
+-@Composable
+-fun TVProTheme(content: @Composable () -> Unit) {
+-    MaterialTheme(
+-        colorScheme = if (isSystemInDarkTheme()) DarkColors else LightColors,
+-        typography = Typography,
+-        shapes = Shapes,
+-        content = content
+-    )
+-}
++@Composable
++fun AppTheme(content: @Composable () -> Unit) {
++    val context = LocalContext.current
++    val settings = SettingsDataStore(context)
++
++    val accent by settings.getAccent().collectAsState(initial = "cyan")
++
++    val accentColor = when (accent) {
++        "red" -> AccentRed
++        "green" -> AccentGreen
++        else -> AccentCyan
++    }
++
++    val darkColors = DarkColors.copy(primary = accentColor)
++    val lightColors = LightColors.copy(primary = accentColor)
++
++    MaterialTheme(
++        colorScheme = if (isSystemInDarkTheme()) darkColors else lightColors,
++        typography = Typography,
++        shapes = Shapes,
++        content = content
++    )
++}
+-- 
+2.39.1
