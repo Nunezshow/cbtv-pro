@@ -18,7 +18,7 @@ import androidx.tv.material3.Button
 @Composable
 fun ChannelListScreen(
     channels: List<Channel>,
-    favorites: Set<String>,                 // << store favorite URLs
+    favorites: Set<String>,                // Set of channel URLs
     onToggleFavorite: (Channel) -> Unit,
     onChannelSelected: (Channel) -> Unit,
     onBack: () -> Unit,
