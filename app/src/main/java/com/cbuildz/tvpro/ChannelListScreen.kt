@@ -11,14 +11,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.tv.material3.Button
 import coil.compose.rememberAsyncImagePainter
 import com.cbuildz.tvpro.ui.TVButtonDefaults
+import androidx.tv.material3.Button
 
 @Composable
 fun ChannelListScreen(
     channels: List<Channel>,
-    favorites: Set<String>, // URLs
+    favorites: Set<String>,                 // << store favorite URLs
     onToggleFavorite: (Channel) -> Unit,
     onChannelSelected: (Channel) -> Unit,
     onBack: () -> Unit,
@@ -48,9 +48,13 @@ fun ChannelListScreen(
 
         Spacer(Modifier.height(16.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            Button(onClick = onBack, colors = TVButtonDefaults.colors()) { Text("Back") }
+            Button(onClick = onBack, colors = TVButtonDefaults.colors()) {
+                Text("Back")
+            }
             if (favorites.isNotEmpty()) {
-                Button(onClick = onFavorites, colors = TVButtonDefaults.colors()) { Text("Favorites") }
+                Button(onClick = onFavorites, colors = TVButtonDefaults.colors()) {
+                    Text("Favorites")
+                }
             }
         }
     }
@@ -96,7 +100,9 @@ fun ChannelRow(
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = onClick, colors = TVButtonDefaults.colors()) { Text("Play") }
+            Button(onClick = onClick, colors = TVButtonDefaults.colors()) {
+                Text("Play")
+            }
             Button(onClick = onToggleFavorite, colors = TVButtonDefaults.colors()) {
                 Text(if (isFavorite) "★" else "☆")
             }

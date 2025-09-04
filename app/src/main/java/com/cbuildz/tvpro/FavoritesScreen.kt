@@ -8,34 +8,34 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.cbuildz.tvpro.data.SettingsDataStore
 
 @Composable
 fun FavoritesScreen(
     channels: List<Channel>,
+    favorites: Set<String>,
     onChannelClick: (Channel) -> Unit,
-    onBack: () -> Unit
+    onToggleFavorite: (Channel) -> Unit
 ) {
+    val favoriteChannels = channels.filter { favorites.contains(it.url) }
+
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (channels.isEmpty()) {
+        if (favoriteChannels.isEmpty()) {
             Text("No favorites yet")
         } else {
             LazyColumn {
-                items(channels) { channel ->
+                items(favoriteChannels) { channel ->
                     ChannelRow(
                         channel = channel,
-                        isFavorite = true,
+                        isFavorite = favorites.contains(channel.url),
                         onClick = { onChannelClick(channel) },
-                        onToggleFavorite = { /* handled from list screen */ }
+                        onToggleFavorite = { onToggleFavorite(channel) }
                     )
                 }
             }
-        }
-        Spacer(Modifier.height(16.dp))
-        androidx.tv.material3.Button(onClick = onBack, colors = com.cbuildz.tvpro.ui.TVButtonDefaults.colors()) {
-            Text("Back")
         }
     }
 }

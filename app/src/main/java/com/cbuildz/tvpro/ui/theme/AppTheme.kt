@@ -1,30 +1,34 @@
 package com.cbuildz.tvpro.ui.theme
 
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import com.cbuildz.tvpro.data.SettingsDataStore
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+
+private fun schemeForAccent(accent: String): ColorScheme {
+    val (primary, secondary) = when (accent.lowercase()) {
+        "red" -> RedPrimary to RedSecondary
+        "green" -> GreenPrimary to GreenSecondary
+        else -> CyanPrimary to CyanSecondary
+    }
+    return darkColorScheme(
+        primary = primary,
+        secondary = secondary,
+        background = DarkBg,
+        surface = DarkSurface,
+        onBackground = OnDark,
+        onSurface = OnDark,
+        onPrimary = OnDark,
+        onSecondary = OnDarkVariant
+    )
+}
 
 @Composable
-fun AppTheme(content: @Composable () -> Unit) {
-    val settings = SettingsDataStore(LocalContext.current)
-    val accent by settings.getAccentColor().collectAsState(initial = "cyan")
-
-    val color = when (accent) {
-        "red" -> Color.Red
-        "green" -> Color.Green
-        else -> Color.Cyan
-    }
-
-    val colors = lightColorScheme(
-        primary = color,
-        secondary = color,
-        tertiary = color
+fun AppTheme(accent: String, content: @Composable () -> Unit) {
+    MaterialTheme(
+        colorScheme = schemeForAccent(accent),
+        typography = AppTypography,
+        shapes = AppShapes,
+        content = content
     )
-
-    MaterialTheme(colorScheme = colors, content = content)
 }

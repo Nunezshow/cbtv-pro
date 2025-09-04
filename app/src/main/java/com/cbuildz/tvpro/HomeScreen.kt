@@ -10,8 +10,9 @@ import com.cbuildz.tvpro.ui.TVButtonDefaults
 
 @Composable
 fun HomeScreen(
-    onNavigate: (String) -> Unit,
-    onPlayTest: () -> Unit
+    onAddPlaylist: () -> Unit,
+    onPlayTest: () -> Unit,
+    onNavigate: (String) -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize().padding(32.dp),
@@ -20,25 +21,18 @@ fun HomeScreen(
         Text("cBuildz TV Pro")
 
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            Button(
-                onClick = { onNavigate(Routes.ADD_PLAYLIST) },
-                colors = TVButtonDefaults.colors()
-            ) { Text("Add Playlist") }
-
-            Button(
-                onClick = { onNavigate(Routes.CHANNELS) },
-                colors = TVButtonDefaults.colors()
-            ) { Text("Browse Channels") }
-
-            Button(
-                onClick = onPlayTest,
-                colors = TVButtonDefaults.colors()
-            ) { Text("Play Test HLS") }
-
-            Button(
-                onClick = { onNavigate(Routes.SETTINGS) },
-                colors = TVButtonDefaults.colors()
-            ) { Text("Settings") }
+            Button(onClick = onAddPlaylist, colors = TVButtonDefaults.colors()) {
+                Text("Add Playlist")
+            }
+            Button(onClick = onPlayTest, colors = TVButtonDefaults.colors()) {
+                Text("Play Test HLS")
+            }
+            Button(onClick = { onNavigate(Routes.CHANNEL_LIST) }, colors = TVButtonDefaults.colors()) {
+                Text("Browse Channels")
+            }
+            Button(onClick = { onNavigate(Routes.SETTINGS) }, colors = TVButtonDefaults.colors()) {
+                Text("Settings")
+            }
         }
     }
 }
