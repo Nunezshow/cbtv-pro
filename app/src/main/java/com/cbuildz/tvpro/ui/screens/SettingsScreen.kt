@@ -2,7 +2,7 @@ package com.cbuildz.tvpro.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Button
@@ -20,24 +20,16 @@ fun SettingsScreen(
 
         Spacer(Modifier.height(24.dp))
 
-        // Remember last channel toggle
-        Button(
-            onClick = onToggleRememberLast,
-            colors = TVButtonDefaults.colors()
-        ) {
+        Button(onClick = onToggleRememberLast, colors = TVButtonDefaults.colors()) {
             Text("Remember last channel: ${if (rememberLast) "ON" else "OFF"}")
         }
 
         Spacer(Modifier.height(24.dp))
 
-        // Accent choices (preset colors)
         Text("Accent color")
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             listOf("cyan", "red", "green").forEach { color ->
-                Button(
-                    onClick = { onAccentSelected(color) },
-                    colors = TVButtonDefaults.colors()
-                ) {
+                Button(onClick = { onAccentSelected(color) }, colors = TVButtonDefaults.colors()) {
                     Text(color)
                 }
             }

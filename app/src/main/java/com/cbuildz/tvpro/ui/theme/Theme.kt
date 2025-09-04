@@ -1,34 +1,35 @@
 package com.cbuildz.tvpro.ui.theme
 
-import androidx.compose.material3.ColorScheme
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Color
 
-private val DarkColors = darkColorScheme(
-    primary = Accent,
-    onPrimary = OnAccent,
-    secondary = AccentVariant,
-    onSecondary = OnAccent,
-    background = Bg,
-    onBackground = OnBg,
-    surface = Surface,
-    onSurface = OnSurface,
-    surfaceVariant = SurfaceVariant,
-    onSurfaceVariant = OnSurfaceVariant,
-    primaryContainer = AccentVariant,
-    onPrimaryContainer = OnAccent
+// Accent state - can be updated later from Settings
+val currentAccent = mutableStateOf(AccentCyan)
+
+private fun darkColorPalette(accent: Color) = darkColorScheme(
+    primary = accent,
+    secondary = accent,
+    background = DarkBackground,
+    surface = LightBackground,
+    onPrimary = Color.Black,
+    onSecondary = Color.Black,
+    onBackground = TextPrimary,
+    onSurface = TextPrimary
 )
 
 @Composable
-fun AppTheme(
-    colorScheme: ColorScheme = DarkColors,
-    content: @Composable () -> Unit
-) {
+fun TVProTheme(content: @Composable () -> Unit) {
+    val accent = remember { currentAccent }
+
     MaterialTheme(
-        colorScheme = colorScheme,
-        typography = AppTypography,
-        shapes = AppShapes,
+        colorScheme = darkColorPalette(accent.value),
+        typography = Typography,
+        shapes = Shapes,
         content = content
     )
 }

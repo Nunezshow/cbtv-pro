@@ -5,14 +5,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import androidx.tv.material3.Button
 import com.cbuildz.tvpro.ui.TVButtonDefaults
 
 @Composable
 fun HomeScreen(
-    nav: NavController,
-    onAddPlaylist: () -> Unit,
+    onNavigate: (String) -> Unit,
     onPlayTest: () -> Unit
 ) {
     Column(
@@ -23,25 +21,24 @@ fun HomeScreen(
 
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             Button(
-                onClick = onAddPlaylist,
+                onClick = { onNavigate(Routes.ADD_PLAYLIST) },
                 colors = TVButtonDefaults.colors()
-            ) {
-                Text("Add Playlist")
-            }
+            ) { Text("Add Playlist") }
+
+            Button(
+                onClick = { onNavigate(Routes.CHANNELS) },
+                colors = TVButtonDefaults.colors()
+            ) { Text("Browse Channels") }
 
             Button(
                 onClick = onPlayTest,
                 colors = TVButtonDefaults.colors()
-            ) {
-                Text("Play Test HLS")
-            }
+            ) { Text("Play Test HLS") }
 
             Button(
-                onClick = { nav.navigate(Routes.SETTINGS) },
+                onClick = { onNavigate(Routes.SETTINGS) },
                 colors = TVButtonDefaults.colors()
-            ) {
-                Text("Settings")
-            }
+            ) { Text("Settings") }
         }
     }
 }
