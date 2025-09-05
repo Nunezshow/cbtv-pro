@@ -11,14 +11,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.tv.material3.Button
 import coil.compose.rememberAsyncImagePainter
 import com.cbuildz.tvpro.ui.TVButtonDefaults
-import androidx.tv.material3.Button
 
 @Composable
 fun ChannelListScreen(
     channels: List<Channel>,
-    favorites: Set<String>,   // favorites by URL
+    favorites: Set<String>,
     onToggleFavorite: (Channel) -> Unit,
     onChannelSelected: (Channel) -> Unit,
     onBack: () -> Unit,
@@ -70,7 +70,6 @@ fun ChannelRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(IntrinsicSize.Min)
             .padding(vertical = 6.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -93,7 +92,7 @@ fun ChannelRow(
                     Text(
                         it,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
                 }
             }

@@ -1,57 +1,47 @@
 package com.cbuildz.tvpro.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import com.cbuildz.tvpro.data.SettingsDataStore
-import androidx.compose.ui.platform.LocalContext
-
-private val DarkColors = darkColorScheme(
-    primary = AccentCyan,
-    secondary = TextSecondary,
-    background = DarkBackground,
-    surface = DarkBackground,
-    onPrimary = TextPrimary,
-    onSecondary = TextPrimary,
-    onBackground = TextPrimary,
-    onSurface = TextPrimary
-)
-
-private val LightColors = lightColorScheme(
-    primary = AccentCyan,
-    secondary = TextSecondary,
-    background = LightBackground,
-    surface = LightBackground,
-    onPrimary = TextPrimary,
-    onSecondary = TextPrimary,
-    onBackground = Color.Black,
-    onSurface = Color.Black
-)
+import androidx.compose.ui.graphics.Color
 
 @Composable
-fun AppTheme(content: @Composable () -> Unit) {
-    val context = LocalContext.current
-    val settings = SettingsDataStore(context)
-
-    val accent by settings.getAccent().collectAsState(initial = "cyan")
-
-    val accentColor = when (accent) {
-        "red" -> AccentRed
+fun TVProTheme(
+    accentName: String = "cyan",
+    darkTheme: Boolean = true,
+    content: @Composable () -> Unit
+) {
+    val accent = when (accentName.lowercase()) {
+        "red"   -> AccentRed
         "green" -> AccentGreen
-        else -> AccentCyan
+        else    -> AccentCyan
     }
 
-    val darkColors = DarkColors.copy(primary = accentColor)
-    val lightColors = LightColors.copy(primary = accentColor)
+    val dark = darkColorScheme(
+        primary = accent,
+        onPrimary = Color.Black,
+        secondary = accent,
+        background = DarkBackground,
+        surface = DarkBackground,
+        onBackground = TextOnDark,
+        onSurface = TextOnDark
+    )
+
+    val light = lightColorScheme(
+        primary = accent,
+        onPrimary = Color.White,
+        secondary = accent,
+        background = LightBackground,
+        surface = LightBackground,
+        onBackground = TextOnLight,
+        onSurface = TextOnLight
+    )
 
     MaterialTheme(
-        colorScheme = if (isSystemInDarkTheme()) darkColors else lightColors,
-        typography = Typography,
-        shapes = Shapes,
+        colorScheme = if (darkTheme) dark else light,
+        typography = androidx.compose.material3.Typography(),
+        shapes = androidx.compose.material3.Shapes(),
         content = content
     )
 }

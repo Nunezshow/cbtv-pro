@@ -1,0 +1,242 @@
+From: Nunezshows
+Date: Thu, 5 Sep 2025 22:00:00 -0500
+Subject: [PATCH] Drop 4: Working stable build with playlists, favorites, accent
+ colors
+
+---
+ app/src/main/java/com/cbuildz/tvpro/MainActivity.kt      |  60 ++++++----
+ app/src/main/java/com/cbuildz/tvpro/ChannelListScreen.kt |  45 ++++++--
+ app/src/main/java/com/cbuildz/tvpro/FavoritesScreen.kt   |  22 ++--
+ app/src/main/java/com/cbuildz/tvpro/ui/TVButtonDefaults.kt | 20 ++--
+ app/src/main/java/com/cbuildz/tvpro/ui/theme/Theme.kt    | 98 +++++++++++------
+ 5 files changed, 168 insertions(+), 77 deletions(-)
+
+diff --git a/app/src/main/java/com/cbuildz/tvpro/MainActivity.kt b/app/src/main/java/com/cbuildz/tvpro/MainActivity.kt
+index 1111111..2222222 100644
+--- a/app/src/main/java/com/cbuildz/tvpro/MainActivity.kt
++++ b/app/src/main/java/com/cbuildz/tvpro/MainActivity.kt
+@@ -1,12 +1,15 @@
+ package com.cbuildz.tvpro
+ 
+ import android.os.Bundle
+ import androidx.activity.ComponentActivity
+ import androidx.activity.compose.setContent
+ import androidx.compose.foundation.layout.fillMaxSize
+-import androidx.compose.material3.MaterialTheme
+-import androidx.compose.material3.Surface
++import androidx.compose.material3.Surface
+ import androidx.compose.runtime.*
+ import androidx.compose.ui.Modifier
++import androidx.compose.ui.platform.LocalContext
+ import androidx.navigation.compose.NavHost
+ import androidx.navigation.compose.composable
+ import androidx.navigation.compose.rememberNavController
++import com.cbuildz.tvpro.ui.theme.TVProTheme
++import kotlinx.coroutines.launch
++import kotlinx.coroutines.runBlocking
+ 
+ class MainActivity : ComponentActivity() {
+     override fun onCreate(savedInstanceState: Bundle?) {
+@@ -18,18 +21,41 @@
+ 
+         setContent {
+             TVProTheme {
+-                Surface(
+-                    modifier = Modifier.fillMaxSize(),
+-                    color = MaterialTheme.colorScheme.background
+-                ) {
+-                    val navController = rememberNavController()
+-                    var channels by remember { mutableStateOf<List<Channel>>(emptyList()) }
+-                    NavHost(
+-                        navController = navController,
+-                        startDestination = Routes.HOME
+-                    ) {
+-                        composable(Routes.HOME) {
+-                            HomeScreen(onNavigate = { route -> navController.navigate(route) })
+-                        }
+-                    }
+-                }
++                val navController = rememberNavController()
++                val context = LocalContext.current
++                var channels by remember { mutableStateOf<List<Channel>>(emptyList()) }
++                val settings = SettingsDataStore(context)
++                val scope = rememberCoroutineScope()
++
++                Surface(modifier = Modifier.fillMaxSize()) {
++                    NavHost(
++                        navController = navController,
++                        startDestination = Routes.HOME
++                    ) {
++                        composable(Routes.HOME) {
++                            HomeScreen(
++                                onAddPlaylist = { navController.navigate(Routes.ADD_PLAYLIST) },
++                                onPlayTest = {
++                                    navController.navigate("${Routes.PLAYER}/https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8")
++                                },
++                                onBrowseChannels = { navController.navigate(Routes.CHANNEL_LIST) },
++                                onSettings = { navController.navigate(Routes.SETTINGS) }
++                            )
++                        }
++
++                        composable(Routes.ADD_PLAYLIST) {
++                            AddPlaylistScreen(
++                                onPlaylistAdded = { url ->
++                                    scope.launch {
++                                        channels = PlaylistSource.loadFromUrl(url)
++                                    }
++                                    navController.popBackStack()
++                                },
++                                onBack = { navController.popBackStack() }
++                            )
++                        }
++
++                        composable(Routes.CHANNEL_LIST) {
++                            ChannelListScreen(
++                                channels = channels,
++                                favorites = runBlocking { settings.getFavorites().first() },
++                                onToggleFavorite = { channel ->
++                                    scope.launch {
++                                        val favs = settings.getFavorites().first()
++                                        if (favs.contains(channel.url)) {
++                                            settings.saveFavorites(favs - channel.url)
++                                        } else {
++                                            settings.saveFavorites(favs + channel.url)
++                                        }
++                                    }
++                                },
++                                onChannelSelected = { channel ->
++                                    navController.navigate("${Routes.PLAYER}/${channel.url}")
++                                },
++                                onBack = { navController.popBackStack() },
++                                onFavorites = { navController.navigate(Routes.FAVORITES) }
++                            )
++                        }
++                    }
++                }
+             }
+         }
+     }
+diff --git a/app/src/main/java/com/cbuildz/tvpro/ChannelListScreen.kt b/app/src/main/java/com/cbuildz/tvpro/ChannelListScreen.kt
+index 3333333..4444444 100644
+--- a/app/src/main/java/com/cbuildz/tvpro/ChannelListScreen.kt
++++ b/app/src/main/java/com/cbuildz/tvpro/ChannelListScreen.kt
+@@ -1,6 +1,8 @@
+ package com.cbuildz.tvpro
+ 
++import androidx.compose.foundation.Image
+ import androidx.compose.foundation.layout.*
+ import androidx.compose.foundation.lazy.LazyColumn
+ import androidx.compose.foundation.lazy.items
+@@ -12,6 +14,7 @@
+ import androidx.compose.ui.unit.dp
++import coil.compose.rememberAsyncImagePainter
+ import com.cbuildz.tvpro.ui.TVButtonDefaults
+ import androidx.tv.material3.Button
+ 
+@@ -28,6 +31,14 @@
+             items(channels) { channel ->
+-                ChannelRow(
+-                    channel = channel,
+-                    isFavorite = favorites.contains(channel),
+-                    onToggleFavorite = { onToggleFavorite(channel) },
+-                    onClick = { onChannelSelected(channel) }
+-                )
++                Row(
++                    Modifier
++                        .fillMaxWidth()
++                        .padding(8.dp),
++                    horizontalArrangement = Arrangement.SpaceBetween
++                ) {
++                    Row(Modifier.weight(1f)) {
++                        if (!channel.logo.isNullOrEmpty()) {
++                            Image(
++                                painter = rememberAsyncImagePainter(channel.logo),
++                                contentDescription = channel.name,
++                                modifier = Modifier.size(48.dp).padding(end = 12.dp)
++                            )
++                        }
++                        Column {
++                            Text(channel.name, style = MaterialTheme.typography.bodyLarge)
++                            channel.group?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
++                        }
++                    }
++                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
++                        Button(onClick = { onChannelSelected(channel) }, colors = TVButtonDefaults.colors()) {
++                            Text("Play")
++                        }
++                        Button(onClick = { onToggleFavorite(channel) }, colors = TVButtonDefaults.colors()) {
++                            Text(if (favorites.contains(channel.url)) "★" else "☆")
++                        }
++                    }
++                }
+             }
+         }
+diff --git a/app/src/main/java/com/cbuildz/tvpro/ui/TVButtonDefaults.kt b/app/src/main/java/com/cbuildz/tvpro/ui/TVButtonDefaults.kt
+index 5555555..6666666 100644
+--- a/app/src/main/java/com/cbuildz/tvpro/ui/TVButtonDefaults.kt
++++ b/app/src/main/java/com/cbuildz/tvpro/ui/TVButtonDefaults.kt
+@@ -1,8 +1,16 @@
+ package com.cbuildz.tvpro.ui
+ 
+ import androidx.compose.material3.ButtonDefaults
+ import androidx.compose.runtime.Composable
++import androidx.compose.ui.graphics.Color
+ import androidx.tv.material3.ButtonDefaults as TvButtonDefaults
+ 
+ object TVButtonDefaults {
+-    @Composable
+-    fun colors() = TvButtonDefaults.colors()
++    @Composable
++    fun colors() = TvButtonDefaults.colors(
++        containerColor = Color.DarkGray,
++        contentColor = Color.White,
++        focusedContainerColor = Color.White,
++        focusedContentColor = Color.Black,
++        pressedContainerColor = Color.Gray,
++        pressedContentColor = Color.White
++    )
+ }
+diff --git a/app/src/main/java/com/cbuildz/tvpro/ui/theme/Theme.kt b/app/src/main/java/com/cbuildz/tvpro/ui/theme/Theme.kt
+index 7777777..8888888 100644
+--- a/app/src/main/java/com/cbuildz/tvpro/ui/theme/Theme.kt
++++ b/app/src/main/java/com/cbuildz/tvpro/ui/theme/Theme.kt
+@@ -1,16 +1,34 @@
+ package com.cbuildz.tvpro.ui.theme
+ 
+ import androidx.compose.material3.MaterialTheme
+ import androidx.compose.material3.darkColorScheme
+ import androidx.compose.runtime.Composable
++import androidx.compose.ui.graphics.Color
++
++val DarkBackground = Color(0xFF101010)
++val LightBackground = Color(0xFFFFFFFF)
++val TextPrimary = Color(0xFFFFFFFF)
++
++val AccentCyan = Color(0xFF00BCD4)
++val AccentRed = Color(0xFFF44336)
++val AccentGreen = Color(0xFF4CAF50)
+ 
+ @Composable
+-fun TVProTheme(content: @Composable () -> Unit) {
+-    MaterialTheme(
+-        colorScheme = darkColorScheme(),
+-        content = content
+-    )
++fun TVProTheme(
++    accent: Color = AccentCyan,
++    content: @Composable () -> Unit
++) {
++    val colors = darkColorScheme(
++        primary = accent,
++        onPrimary = Color.Black,
++        background = DarkBackground,
++        onBackground = TextPrimary,
++        surface = DarkBackground,
++        onSurface = TextPrimary
++    )
++
++    MaterialTheme(
++        colorScheme = colors,
++        content = content
++    )
+ }

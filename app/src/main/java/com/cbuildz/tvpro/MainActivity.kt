@@ -1,5 +1,6 @@
 package com.cbuildz.tvpro
 
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -15,11 +16,9 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.cbuildz.tvpro.data.SettingsDataStore
 import com.cbuildz.tvpro.ui.screens.SettingsScreen
-import com.cbuildz.tvpro.ui.theme.AppTheme
+import com.cbuildz.tvpro.ui.theme.TVProTheme
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,26 +27,28 @@ class MainActivity : ComponentActivity() {
         val settings = SettingsDataStore(this)
 
         setContent {
-            AppTheme {
+            // read accent + rememberLast from DataStore
+            val accent by settings.getAccent().collectAsState(initial = "cyan")
+            val rememberLast by settings.shouldRememberLast().collectAsState(initial = true)
+            val favorites by settings.getFavorites().collectAsState(initial = emptySet())
+
+            TVProTheme(accentName = accent, darkTheme = true) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController()
+                    val scope = rememberCoroutineScope()
 
                     var channels by remember { mutableStateOf<List<Channel>>(emptyList()) }
 
-                    NavHost(
-                        navController = navController,
-                        startDestination = Routes.HOME
-                    ) {
+                    NavHost(navController = navController, startDestination = Routes.HOME) {
                         composable(Routes.HOME) {
                             HomeScreen(
                                 onAddPlaylist = { navController.navigate(Routes.ADD_PLAYLIST) },
                                 onPlayTest = {
                                     val url = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
-                                    val encoded = URLEncoder.encode(url, StandardCharsets.UTF_8.toString())
-                                    navController.navigate("${Routes.PLAYER}/$encoded")
+                                    navController.navigate("${Routes.PLAYER}/${Uri.encode(url)}")
                                 },
                                 onBrowseChannels = { navController.navigate(Routes.CHANNEL_LIST) },
                                 onSettings = { navController.navigate(Routes.SETTINGS) }
@@ -57,59 +58,59 @@ class MainActivity : ComponentActivity() {
                         composable(Routes.CHANNEL_LIST) {
                             ChannelListScreen(
                                 channels = channels,
-                                favorites = runBlocking { settings.getFavorites().first() },
-                                onChannelSelected = { channel ->
-                                    val encoded = URLEncoder.encode(channel.url, StandardCharsets.UTF_8.toString())
-                                    navController.navigate("${Routes.PLAYER}/$encoded")
-                                },
-                                onToggleFavorite = { channel ->
-                                    val favs = runBlocking { settings.getFavorites().first() }
+                                favorites = favorites,
+                                onToggleFavorite = { ch ->
                                     val updated =
-                                        if (favs.contains(channel.url)) favs - channel.url else favs + channel.url
-                                    runBlocking { settings.saveFavorites(updated) }
+                                        if (favorites.contains(ch.url)) favorites - ch.url
+                                        else favorites + ch.url
+                                    scope.launch { settings.saveFavorites(updated) }
+                                },
+                                onChannelSelected = { ch ->
+                                    scope.launch {
+                                        if (rememberLast) settings.saveLastChannel(ch.url)
+                                    }
+                                    navController.navigate("${Routes.PLAYER}/${Uri.encode(ch.url)}")
                                 },
                                 onBack = { navController.popBackStack() },
                                 onFavorites = { navController.navigate(Routes.FAVORITES) }
                             )
                         }
 
-                        composable(
-                            route = "${Routes.PLAYER}/{url}",
-                            arguments = listOf(navArgument("url") { type = NavType.StringType })
-                        ) { backStackEntry ->
-                            val url = backStackEntry.arguments?.getString("url")
-                                ?.let { java.net.URLDecoder.decode(it, StandardCharsets.UTF_8.toString()) }
-                                ?: return@composable
-                            PlayerScreen(url = url)
-                        }
-
                         composable(Routes.FAVORITES) {
                             FavoritesScreen(
                                 channels = channels,
-                                favorites = runBlocking { settings.getFavorites().first() },
-                                onChannelClick = { channel ->
-                                    val encoded = URLEncoder.encode(channel.url, StandardCharsets.UTF_8.toString())
-                                    navController.navigate("${Routes.PLAYER}/$encoded")
+                                favorites = favorites,
+                                onChannelClick = { ch ->
+                                    scope.launch {
+                                        if (rememberLast) settings.saveLastChannel(ch.url)
+                                    }
+                                    navController.navigate("${Routes.PLAYER}/${Uri.encode(ch.url)}")
                                 },
-                                onToggleFavorite = { channel ->
-                                    val favs = runBlocking { settings.getFavorites().first() }
+                                onToggleFavorite = { ch ->
                                     val updated =
-                                        if (favs.contains(channel.url)) favs - channel.url else favs + channel.url
-                                    runBlocking { settings.saveFavorites(updated) }
+                                        if (favorites.contains(ch.url)) favorites - ch.url
+                                        else favorites + ch.url
+                                    scope.launch { settings.saveFavorites(updated) }
                                 }
                             )
                         }
 
+                        composable(
+                            route = "${Routes.PLAYER}/{url}",
+                            arguments = listOf(navArgument("url") { type = NavType.StringType })
+                        ) { bs ->
+                            val url = bs.arguments?.getString("url")?.let { Uri.decode(it) } ?: return@composable
+                            PlayerScreen(url = url)
+                        }
+
                         composable(Routes.SETTINGS) {
                             SettingsScreen(
-                                rememberLast = runBlocking { settings.shouldRememberLast().first() },
+                                rememberLast = rememberLast,
                                 onToggleRememberLast = {
-                                    val current =
-                                        runBlocking { settings.shouldRememberLast().first() }
-                                    runBlocking { settings.setRememberLast(!current) }
+                                    scope.launch { settings.setRememberLast(!rememberLast) }
                                 },
-                                onAccentSelected = { color ->
-                                    runBlocking { settings.setAccent(color) }
+                                onAccentSelected = { newAccent ->
+                                    scope.launch { settings.setAccent(newAccent) }
                                 },
                                 onBack = { navController.popBackStack() }
                             )
@@ -118,8 +119,10 @@ class MainActivity : ComponentActivity() {
                         composable(Routes.ADD_PLAYLIST) {
                             AddPlaylistScreen(
                                 onPlaylistAdded = { url ->
-                                    channels = runBlocking { PlaylistSource.loadFromUrl(url) }
-                                    navController.popBackStack()
+                                    scope.launch {
+                                        channels = PlaylistSource.loadFromUrl(url)
+                                    }
+                                    navController.navigate(Routes.CHANNEL_LIST)
                                 },
                                 onBack = { navController.popBackStack() }
                             )

@@ -8,17 +8,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.cbuildz.tvpro.data.SettingsDataStore
 
 @Composable
 fun FavoritesScreen(
     channels: List<Channel>,
-    favorites: Set<String>,   // pass urls, not channels
+    favorites: Set<String>,
     onChannelClick: (Channel) -> Unit,
     onToggleFavorite: (Channel) -> Unit
 ) {
-    val favoriteChannels = channels.filter { channel ->
-        favorites.contains(channel.url)
-    }
+    val favoriteChannels = channels.filter { favorites.contains(it.url) }
 
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp),
