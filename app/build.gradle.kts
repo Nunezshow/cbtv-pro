@@ -1,4 +1,4 @@
-plugins {
+﻿plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
@@ -48,7 +48,7 @@ dependencies {
     // Image loading
     implementation("io.coil-kt:coil-compose:2.6.0")
 
-    // TV Compose (we’re using TV buttons; list is standard LazyColumn for now)
+    // TV Compose (weâ€™re using TV buttons; list is standard LazyColumn for now)
     implementation("androidx.tv:tv-foundation:1.0.0-alpha12")
     implementation("androidx.tv:tv-material:1.0.1")
 
