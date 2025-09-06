@@ -1,0 +1,27 @@
+diff --git a/.gitignore b/.gitignore
+index d73d4f9f6e29da8abd26c6435c61930aae5487af..b2f8e3589d20100dd7ad26befd05f3b591e57ca1 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -1,21 +1,22 @@
+ # Gradle
+ .gradle/
+ build/
+ */build/
+ 
+ # Android Studio / IntelliJ
+ .idea/
+ *.iml
+ 
+ # Local config
+ local.properties
+ *.hprof
+ 
+ # OS files
+ .DS_Store
+ Thumbs.db
+ 
+ # Node / Backend
+ backend/node_modules/
+ backend/dist/
+ backend/.env
++backend/package-lock.json

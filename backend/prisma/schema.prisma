@@ -1,0 +1,39 @@
+diff --git a/backend/prisma/schema.prisma b/backend/prisma/schema.prisma
+index 90bd0ce1da69f5de3649b83bec578b89a647520f..5427bb4c5efecf0323d62ee6730c48d0e574cc94 100644
+--- a/backend/prisma/schema.prisma
++++ b/backend/prisma/schema.prisma
+@@ -8,32 +8,34 @@ datasource db {
+ }
+ 
+ model User {
+   id        String   @id @default(cuid())
+   email     String   @unique
+   password  String   // hashed
+   role      Role     @default(USER)
+   createdAt DateTime @default(now())
+   updatedAt DateTime @updatedAt
+ 
+   FeatureFlags FeatureFlags?
+ }
+ 
+ model FeatureFlags {
+   id        String  @id @default(cuid())
+   userId    String  @unique
+   user      User    @relation(fields: [userId], references: [id])
+   flagsJson Json    // {"favorites":true,"epg":true,"scrapers":false,...}
+ }
+ 
+ model Playlist {
+   id        String   @id @default(cuid())
+   name      String
+   url       String
+   isGlobal  Boolean  @default(true)
++  userId    String?
++  user      User?    @relation(fields: [userId], references: [id])
+   createdAt DateTime @default(now())
+ }
+ 
+ enum Role {
+   ADMIN
+   USER
+ }
